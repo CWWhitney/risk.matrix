@@ -1,0 +1,13 @@
+\name{import_risk_data}
+\alias{import_risk_data}
+\title{Import risk outcomes from CSV}
+\usage{import_risk_data(path)}
+\arguments{
+\item{path}{Path to a CSV file with \code{alternative}, \code{outcome}, and \code{probability} columns.}
+}
+\value{A validated data frame; extra columns are retained.}
+\description{Read and validate a CSV file containing conditional outcome distributions. See \code{data-raw/risk_template.csv} in the source repository or the installed project selection example for the expected format.}
+\examples{
+path <- system.file("extdata", "project_selection.csv", package = "risk.decision")
+import_risk_data(path)
+}

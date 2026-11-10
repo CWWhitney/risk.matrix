@@ -1,0 +1,13 @@
+\name{validate_risk_data}
+\alias{validate_risk_data}
+\title{Validate a risk outcome table}
+\usage{validate_risk_data(data)}
+\arguments{
+\item{data}{A data frame with \code{alternative}, \code{outcome}, and \code{probability} columns. Optional columns may describe the uncertain scenarios.}
+}
+\value{The input data frame, invisibly. Invalid inputs cause an error.}
+\description{Check that each alternative has a complete probability distribution over numeric outcomes. Rows represent mutually exclusive, collectively exhaustive outcomes conditional on the alternative.}
+\examples{
+validate_risk_data(data.frame(alternative = c("A", "A"),
+                              outcome = c(-10, 20), probability = c(0.2, 0.8)))
+}

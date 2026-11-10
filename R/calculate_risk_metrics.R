@@ -21,8 +21,8 @@ calculate_risk_metrics <- function(data, threshold = 0) {
     sum(data$probability[rows] * (data$outcome[rows] - result$expected_value[i])^2)
   }, numeric(1))
   result$standard_deviation <- sqrt(result$variance)
-  result$downside_probability <- vapply(result$alternative, function(alt) {
+  result$downside_probability <- unname(vapply(result$alternative, function(alt) {
     sum(data$probability[data$alternative == alt & data$outcome < threshold])
-  }, numeric(1))
+  }, numeric(1)))
   result
 }

@@ -1,7 +1,8 @@
 Package: risk.decision
 Title: Decision Quality Tools for Risk Assessment
 Version: 0.1.0
-Authors@R: person("Cory", "Whitney", role = c("aut", "cre"))
+Authors@R: person("Cory", "Whitney", email = "CWWhitney@users.noreply.github.com",
+    role = c("aut", "cre"))
 Description: Supports transparent risk assessment and decision analysis using
     explicit alternatives, uncertain outcomes, probabilities and values.
     Provides numerical summaries and visualizations as alternatives to
@@ -10,6 +11,9 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
+Imports:
+    graphics,
+    utils
 Suggests:
     knitr,
     rmarkdown,
