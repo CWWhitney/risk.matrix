@@ -2,7 +2,7 @@
 #' @description Combine pre-scaled attribute values with weights using an
 #'   additive value model. This model assumes appropriate preferential
 #'   independence and weights representing trade-offs across the full
-#'   attribute scales; it does not elicit or validate these assumptions.
+#'   attribute scales, which the analyst elicits and checks.
 #' @param data A data frame containing `alternative` and numeric attribute
 #'   columns scaled from 0 (least preferred) to 1 (most preferred).
 #' @param weights A named numeric vector of non-negative attribute weights

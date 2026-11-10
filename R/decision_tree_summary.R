@@ -1,7 +1,6 @@
 #' @title Summarize a one-stage decision tree
 #' @description Summarize decision alternatives and their conditional outcome
-#'   distributions. This is a one-decision, one-chance-stage representation,
-#'   not a general solver for sequential decision trees.
+#'   distributions for a one-decision, one-chance-stage tree.
 #' @param data An outcome table; see [validate_risk_data()].
 #' @param threshold Numeric threshold used for downside probability.
 #' @return A data frame with the number of outcome branches and risk metrics for

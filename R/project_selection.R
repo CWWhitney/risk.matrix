@@ -1,6 +1,6 @@
-#' @title Illustrative project selection outcomes
+#' @title Project selection outcomes
 #' @description Invented conditional outcome distributions for a choice between
-#'   two projects. Values are not taken from a published case.
+#'   two projects.
 #' @format A data frame with four rows and four columns:
 #' \describe{
 #'   \item{alternative}{Project name.}

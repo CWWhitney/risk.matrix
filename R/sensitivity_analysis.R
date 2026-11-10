@@ -1,9 +1,8 @@
 #' @title Explore sensitivity to a branch probability
 #' @description Vary one outcome probability for one alternative, keeping
 #'   the relative probabilities of its other outcomes fixed. Expected values of
-#'   all alternatives are returned for comparison. This is a one-way
-#'   sensitivity analysis, not a joint uncertainty or value-of-information
-#'   analysis.
+#'   all alternatives are returned for comparison (a one-way sensitivity
+#'   analysis).
 #' @param data An outcome table; see [validate_risk_data()].
 #' @param alternative Name of the alternative to vary.
 #' @param branch Row number in `data` of the outcome to vary.
