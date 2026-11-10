@@ -17,8 +17,7 @@ each alternative.
 }
 \description{
 Summarize decision alternatives and their conditional outcome
-distributions. This is a one-decision, one-chance-stage representation,
-not a general solver for sequential decision trees.
+distributions for a one-decision, one-chance-stage tree.
 }
 \examples{
 data <- data.frame(alternative = c("A", "A"), outcome = c(-10, 20),

@@ -21,7 +21,7 @@ at each loss level.}
 \item{xlab, ylab}{Axis labels.}
 }
 \value{
-\code{curves}, invisibly.
+A ggplot object.
 }
 \description{
 Draw one or more loss exceedance curves, optionally with a

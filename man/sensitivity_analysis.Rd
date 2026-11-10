@@ -22,9 +22,8 @@ A data frame with trial \code{probability}, \code{alternative}, and
 \description{
 Vary one outcome probability for one alternative, keeping
 the relative probabilities of its other outcomes fixed. Expected values of
-all alternatives are returned for comparison. This is a one-way
-sensitivity analysis, not a joint uncertainty or value-of-information
-analysis.
+all alternatives are returned for comparison (a one-way sensitivity
+analysis).
 }
 \examples{
 data <- data.frame(alternative = c("A", "A", "B"),

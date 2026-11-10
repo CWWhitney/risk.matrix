@@ -20,7 +20,7 @@ A data frame with \code{alternative} and \code{value}.
 Combine pre-scaled attribute values with weights using an
 additive value model. This model assumes appropriate preferential
 independence and weights representing trade-offs across the full
-attribute scales; it does not elicit or validate these assumptions.
+attribute scales, which the analyst elicits and checks.
 }
 \examples{
 data <- data.frame(alternative = c("A", "B"),

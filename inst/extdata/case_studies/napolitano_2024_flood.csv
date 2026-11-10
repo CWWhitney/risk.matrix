@@ -1,0 +1,5 @@
+alternative,uncertain_variable,outcome,probability
+Configuration 2 (optimal path),Budget higher at year 10 and higher at year 20,11.67,0.25
+Configuration 2 (optimal path),Budget higher at year 10 and constant at year 20,11.87,0.25
+Configuration 2 (optimal path),Budget constant at year 10 and higher at year 20,12.17,0.25
+Configuration 2 (optimal path),Budget constant at year 10 and constant at year 20,13.34,0.25

@@ -3,7 +3,7 @@
 \docType{data}
 \name{project_selection}
 \alias{project_selection}
-\title{Illustrative project selection outcomes}
+\title{Project selection outcomes}
 \format{
 A data frame with four rows and four columns:
 \describe{
@@ -18,7 +18,7 @@ data(project_selection)
 }
 \description{
 Invented conditional outcome distributions for a choice between
-two projects. Values are not taken from a published case.
+two projects.
 }
 \examples{
 data(project_selection)

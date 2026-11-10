@@ -12,12 +12,12 @@ plot_risk_visualization(data, ylab = "Expected outcome")
 \item{ylab}{Label describing the units and direction of outcome values.}
 }
 \value{
-The expected value summary, invisibly; called for its plot.
+A ggplot object.
 }
 \description{
 Draw a bar chart of expected outcomes. Expected value alone
-does not describe downside risk or preferences under risk; inspect the
-underlying distributions alongside this plot.
+leaves downside risk and risk preferences to the underlying distributions;
+read this plot alongside them.
 }
 \examples{
 data <- data.frame(alternative = c("A", "A"), outcome = c(-10, 20),

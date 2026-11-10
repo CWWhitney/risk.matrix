@@ -18,14 +18,13 @@ generate_risk_matrix(
 \item{ylab}{Label describing the units and direction of outcome values.}
 }
 \value{
-The validated input data, invisibly; called for its plot.
+A ggplot object.
 }
 \description{
-Draw an outcome-level probability-consequence display as a
-quantitative alternative to a categorical risk matrix. It preserves
-conditional probabilities and signed outcomes instead of multiplying
-ordinal ranks. Points are outcomes, not independent risks; overlapping
-points may conceal one another. Compare complete distributions as well.
+Plot each outcome of each alternative at its conditional
+probability (horizontal) and its outcome value (vertical). Overlapping
+points can conceal one another, so read the plot with the full
+distributions.
 }
 \examples{
 data <- data.frame(alternative = c("A", "A"), outcome = c(-10, 20),
