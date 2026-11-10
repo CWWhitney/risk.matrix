@@ -1,0 +1,73 @@
+---
+title: "Decision Analysis with Uncertain Outcomes"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Decision Analysis with Uncertain Outcomes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, collapse = TRUE, comment = "#>")
+library(risk.decision)
+```
+
+## Compare strategic alternatives
+
+Keeney and Raiffa's multi-attribute value approach models preferences over
+multiple objectives before combining attributes. This package's foundational
+functions accept one common `value` scale; users should construct and validate
+any multi-attribute value function before entering values here. The data below
+is a synthetic strategic-choice example, not a reproduction of a published
+case.
+
+```{r}
+strategy <- import_risk_data(system.file(
+  "extdata", "strategic-alternatives.csv", package = "risk.decision"
+))
+decision_tree_summary(strategy)
+```
+
+## Sensitivity to probability judgments
+
+One simple sensitivity check changes the probability assigned to a weak
+adoption outcome and reallocates the difference to expected adoption. This
+shows how expected values move under an explicit change in belief; it is not a
+full probabilistic sensitivity analysis.
+
+```{r}
+expand <- strategy[strategy$alternative == "Expand", ]
+weak_index <- expand$outcome == "Weak adoption"
+expected_index <- expand$outcome == "Expected adoption"
+
+expected_value_at <- function(weak_probability) {
+  adjusted <- expand
+  shift <- adjusted$probability[weak_index] - weak_probability
+  adjusted$probability[weak_index] <- weak_probability
+  adjusted$probability[expected_index] <- adjusted$probability[expected_index] + shift
+  calculate_risk_metrics(adjusted)$expected_value
+}
+
+data.frame(
+  weak_adoption_probability = c(0.10, 0.20, 0.30),
+  expected_value = vapply(c(0.10, 0.20, 0.30), expected_value_at, numeric(1))
+)
+```
+
+## Show preference and uncertainty together
+
+Expected value summarizes the modeled preference scale, while the point cloud
+shows the probability and magnitude of each outcome. Neither should be
+interpreted without the underlying objectives, assumptions, and stakeholder
+tradeoffs.
+
+```{r}
+generate_risk_matrix(strategy)
+```
+
+## References
+
+- Howard, R. A., and Abbas, A. E. (2015). *Foundations of Decision Analysis*.
+  Pearson.
+- Keeney, R. L., and Raiffa, H. (1976). *Decisions with Multiple Objectives:
+  Preferences and Value Tradeoffs*. Wiley.
