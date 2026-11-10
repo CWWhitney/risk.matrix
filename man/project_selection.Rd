@@ -14,7 +14,7 @@ A data frame with four rows and four columns:
 }
 }
 \usage{
-project_selection
+data(project_selection)
 }
 \description{
 Invented conditional outcome distributions for a choice between
