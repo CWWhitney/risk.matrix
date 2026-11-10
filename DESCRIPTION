@@ -3,17 +3,20 @@ Title: Decision Quality Tools for Risk Assessment
 Version: 0.1.0
 Authors@R: person("Cory", "Whitney", email = "CWWhitney@users.noreply.github.com",
     role = c("aut", "cre"))
-Description: Supports transparent risk assessment and decision analysis using
-    explicit alternatives, uncertain outcomes, probabilities and values.
-    Provides numerical summaries and visualizations as alternatives to
-    categorical risk matrices.
-License: MIT + file LICENSE
+Description: Calculates expected values, risk measures, loss exceedance curves
+    and the value of information from probabilities and outcomes. Draws risk
+    matrices shaded by expected loss and risk maps with ggplot2.
+License: GPL
 Encoding: UTF-8
 Depends: R (>= 3.6.0)
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
 Imports:
-    graphics,
+    ggplot2,
+    grid,
+    ggrepel,
+    scales,
+    voi,
+    stats,
     utils
 Suggests:
     knitr,
@@ -21,3 +24,4 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0
