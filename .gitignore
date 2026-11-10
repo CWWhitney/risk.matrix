@@ -37,3 +37,4 @@ po/*~
 rsconnect/
 .DS_Store
 risk_matrix_backup/
+risk.matrix.Rproj
