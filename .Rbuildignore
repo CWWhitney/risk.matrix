@@ -1,2 +1,6 @@
 ^data-raw$
 ^README\.md$
+^.*\.Rproj$
+^\.Rproj\.user$
+^risk_matrix_backup$
+^\.DS_Store$
