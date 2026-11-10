@@ -1,0 +1,5 @@
+alternative,uncertain_variable,outcome,probability
+Surgery,GI foreign body,83.3,0.04
+Surgery,No GI foreign body,60,0.96
+No surgery,GI foreign body,23.3,0.04
+No surgery,No GI foreign body,100,0.96

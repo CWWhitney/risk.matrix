@@ -1,0 +1,4 @@
+risk,probability,impact
+Severe losses,0.40,3000000
+Well control,0.10,12500000
+Blowout,0.05,50000000
