@@ -1,0 +1,46 @@
+---
+title: "Decision Analysis with Uncertain Outcomes"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Decision Analysis with Uncertain Outcomes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(risk.decision)
+```
+
+This one-stage decision model compares project alternatives under uncertain
+demand. Its invented data illustrate decision-tree reasoning in the style of
+Howard and Abbas, rather than reproducing a specific published example.
+
+```{r}
+path <- system.file("extdata", "project_selection.csv", package = "risk.decision")
+projects <- import_risk_data(path)
+decision_tree_summary(projects, threshold = 0)
+sensitivity_analysis(projects, alternative = "Innovative", branch = 3,
+                     probabilities = c(0.1, 0.3, 0.5, 0.7))
+generate_risk_matrix(projects, ylab = "Net benefit (arbitrary units)")
+```
+
+The sensitivity calculation changes the probability of low demand for the
+innovative project and redistributes the remainder proportionally across its
+other branches. It does not simultaneously change the conservative project,
+even if the underlying demand uncertainty is shared.
+
+For a separate, deterministic multi-attribute illustration, suppose stakeholders
+have already scored financial and strategic performance from 0 to 1 and
+elicited weights that describe trade-offs over those full scales:
+
+```{r}
+attribute_path <- system.file("extdata", "attribute_values.csv", package = "risk.decision")
+attributes <- read.csv(attribute_path)
+value_function(attributes, c(financial_value = 0.6, strategic_value = 0.4))
+```
+
+The additive model follows the multi-attribute value-modeling approach
+associated with Keeney and Raiffa. Additivity requires suitable preferential
+independence and properly elicited scale weights. These illustrative scores
+are not utilities under uncertainty and are not combined with the monetary
+outcome model above.

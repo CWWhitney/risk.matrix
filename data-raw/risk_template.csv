@@ -1,0 +1,5 @@
+alternative,uncertain_variable,outcome,probability
+Option A,Scenario 1,0,0.5
+Option A,Scenario 2,100,0.5
+Option B,Scenario 1,20,0.6
+Option B,Scenario 2,80,0.4
