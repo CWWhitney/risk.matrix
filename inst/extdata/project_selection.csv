@@ -1,0 +1,5 @@
+alternative,uncertain_variable,outcome,probability
+Conservative,Low demand,-20,0.2
+Conservative,High demand,80,0.8
+Innovative,Low demand,-100,0.3
+Innovative,High demand,160,0.7
