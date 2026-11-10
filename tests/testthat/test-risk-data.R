@@ -3,6 +3,9 @@ test_that("CSV import validates outcome distributions", {
   data <- import_risk_data(path)
   expect_equal(nrow(data), 4)
   expect_equal(validate_risk_data(data), data)
+  dataset <- new.env()
+  utils::data("project_selection", package = "risk.decision", envir = dataset)
+  expect_equal(dataset$project_selection, data)
   expect_error(import_risk_data(""), "path")
   bad <- data
   bad$probability[1] <- 0.9

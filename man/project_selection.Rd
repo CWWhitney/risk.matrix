@@ -1,0 +1,17 @@
+\name{project_selection}
+\alias{project_selection}
+\title{Illustrative project selection outcomes}
+\format{A data frame with four rows and four columns:
+\describe{
+\item{alternative}{Project name.}
+\item{uncertain_variable}{Demand scenario.}
+\item{outcome}{Net benefit in arbitrary monetary units.}
+\item{probability}{Scenario probability conditional on the project.}
+}}
+\description{Invented conditional outcome distributions for a choice between two projects. Values are not taken from a published case.}
+\usage{data(project_selection)}
+\examples{
+data(project_selection)
+calculate_expected_value(project_selection)
+}
+\keyword{datasets}
