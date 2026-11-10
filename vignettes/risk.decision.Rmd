@@ -1,0 +1,438 @@
+---
+title: "Using risk.decision"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using risk.decision}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(risk.decision)
+knitr::opts_chunk$set(fig.width = 7, fig.height = 4.2, dpi = 110)
+```
+
+risk.decision calculates expected values, risk measures, loss exceedance curves
+and the value of information from probabilities and outcomes, and plots them with
+ggplot2. The user supplies the probabilities and values.
+
+## Background
+
+| Idea | Reference |
+|---|---|
+| Decision quality: a frame, alternatives, information, values, reasoning and commitment | Spetzler, Winter and Meyer (2016), doi:10.1002/9781119176657 |
+| Decision analysis: alternatives, uncertain outcomes, probabilities and values | Howard (2007), doi:10.1017/cbo9780511611308.004 |
+| Quantitative risk analysis: probabilities, 90% intervals, loss exceedance | Hubbard (2020), doi:10.1002/9781119521914 |
+| Properties of risk matrices | Cox (2008), doi:10.1111/j.1539-6924.2008.01030.x; Thomas, Bratvold and Bickel (2014), doi:10.2118/166269-PA |
+| Several attributes on one value scale | Keeney and Raiffa (1993), doi:10.1017/cbo9781139174084 |
+
+A risk matrix assigns each risk to a likelihood band and an impact band. Part A
+draws that grid shaded by expected loss, and adds a risk map that plots each
+risk at its own probability and dollar impact.
+
+## Workflow at a glance
+
+| Step | Function | What it does |
+|---|---|---|
+| 1 Collect estimates | `import_risk_register()` | reads one row per risk from a CSV |
+| 2 Draw the risk matrix | `plot_risk_heatmap()` | draws the probability-by-impact grid, shaded by expected loss |
+| 3 Map the risks | `plot_risk_register()` | plots each risk by probability and impact, with the effect of controls |
+| 4 Rank them | `expected_loss_table()`, `plot_expected_loss()`, `compare_matrix_ranking()` | ranks risks by expected loss and compares with matrix scores |
+| 5 Check large losses | `simulate_annual_loss()`, `loss_exceedance_curve()`, `plot_loss_exceedance()` | simulates annual losses and plots the chance of exceeding each loss |
+| 6 Set tolerance | `fit_risk_tolerance()`, `certain_monetary_equivalent()` | fits a risk tolerance and values gambles with it |
+| 7 Save the report | `ggplot2::ggsave()` | writes plots to image files |
+
+# Part A. A risk report in seven steps
+
+## What a risk matrix looks like
+
+A risk matrix is a grid. Rows are probability bands (often "rare" to "likely"),
+columns are impact bands (often "incidental" to "catastrophic"), and each risk
+is placed in the cell where its probability and impact fall. Cells are colored
+green, yellow and red, and many registers rank risks by a score, the product of
+the row rating and the column rating. Figure 1 of Thomas, Bratvold and Bickel
+(2014) shows a typical six by six example, with probability bands from 1% to
+40% and impact bands from 100 thousand to 20 million dollars. `risk.decision`
+draws this same grid, with one change: the color of each cell is a number, the
+expected loss (probability times impact) at the center of the cell.
+
+## 1. Collect the estimates
+
+Fill one row per risk in a spreadsheet and save it as CSV. `probability` is the
+chance in a year, `lower` and `upper` bound the impact if the risk occurs
+(a 90% interval; a single `impact` column works for a point estimate), and the
+optional `control_cost` and `control_effectiveness` (share of the probability
+removed) describe a control. The example register is invented.
+
+```{r}
+path <- system.file("extdata", "risk_register.csv", package = "risk.decision")
+risks <- import_risk_register(path)
+risks
+```
+
+## 2. Draw the risk matrix
+
+*Why:* most risk registers use this grid. Shading by expected loss gives the
+colors a numerical meaning. Each numbered circle is a risk in its cell. The
+number in a cell is the expected loss at the cell's center, and the key under
+the plot gives each risk's own expected loss. Set the bands and their names to
+match your organization's matrix; the defaults follow Thomas et al. (2014).
+
+```{r, fig.width = 9, fig.height = 6}
+plot_risk_heatmap(
+  risks,
+  probability_breaks = c(0, 0.05, 0.15, 0.30, 0.50, 1),
+  impact_breaks = c(0, 1e5, 5e5, 1e6, 3e6, Inf),
+  probability_labels = c("Rare", "Unlikely", "Possible", "Likely", "Almost certain"),
+  impact_labels = c("Minor", "Moderate", "Major", "Severe", "Extreme"))
+```
+
+Read the color as size of risk: cells toward the upper right carry the larger
+expected losses. Two risks in cells of the same color can still differ, since
+a cell spans a range of probabilities and impacts; step 4 gives the exact order.
+
+## 3. Show the risk map
+
+*Why:* the map plots each risk at its own probability and impact, without bands.
+Each point sits at its annual probability and expected impact, dashed lines join points of equal expected annual loss,
+and arrows lead to the position after controls.
+
+```{r, fig.height = 5}
+plot_risk_register(risks)
+```
+
+## 4. Rank the risks
+
+*Why:* expected annual loss (probability times expected impact) compares risks
+of different kinds on one scale. `return_on_control` is the loss removed per
+unit of control cost, minus one; positive values mark controls that pay for
+themselves.
+
+```{r}
+expected_loss_table(risks)
+plot_expected_loss(risks)
+```
+
+A matrix ranks by score, so `compare_matrix_ranking()` sets the score ranking
+beside the expected-loss ranking. Thomas et al. (2014) work through a drilling
+example with three risks (their Tables 1, 2, 4 and 7), included as a case study.
+Their matrix gives severe losses the top score (5 x 4 = 20), then well control
+(3 x 5 = 15), then blowout (2 x 6 = 12).
+
+```{r}
+drilling <- case_study("thomas_2014_drilling")
+compare_matrix_ranking(drilling)
+```
+
+The same matrix scored in the other common direction, with lower ratings for
+higher bands, ranks blowout first. Expected loss does not depend on the scoring
+direction: blowout is largest at 2.5 million a year, ahead of well control at
+1.25 million and severe losses at 1.2 million.
+
+```{r}
+compare_matrix_ranking(drilling, scale = "descending")
+```
+
+```{r, fig.width = 9, fig.height = 6}
+plot_risk_heatmap(drilling)
+```
+
+## 5. Show the chance of large losses
+
+*Why:* the chance of a large annual loss shows whether total risk is within
+tolerance. Simulation adds the risks into annual totals, and the loss exceedance curve gives the probability of exceeding
+each loss, set here against a tolerance (the highest acceptable probability at
+each loss).
+
+```{r}
+sim <- simulate_annual_loss(risks, n = 5000, seed = 1)
+tolerance <- data.frame(loss = c(1e6, 3e6, 6e6),
+                        exceedance_probability = c(0.5, 0.2, 0.05))
+plot_loss_exceedance(loss_exceedance_curve(sim), tolerance)
+```
+
+## 6. Set the risk tolerance
+
+*Why:* it expresses risk tolerance as one number. `fit_risk_tolerance()` finds the exponential-utility tolerance that makes a
+set of just-barely-acceptable bets worth zero, and
+`certain_monetary_equivalent()` values any gamble with it.
+
+```{r}
+bets <- data.frame(gain = c(5, 2), loss = c(-3, -1), p_gain = c(0.8, 0.6))
+fit <- fit_risk_tolerance(bets)
+fit$risk_tolerance
+certain_monetary_equivalent(c(40, -5), c(0.6, 0.4), fit$risk_tolerance)
+```
+
+## 7. Save the report
+
+The report is the risk matrix, the risk map, the ranking chart, the loss exceedance curve and
+the table. Save any plot with `ggplot2::ggsave()`, for example
+`ggplot2::ggsave("risk_matrix.png", plot_risk_heatmap(risks), width = 9, height = 6)`.
+
+# Part B. Compare alternatives
+
+## Describe each alternative
+
+Each row is one mutually exclusive outcome of one alternative. Probabilities
+sum to one within an alternative, and higher outcomes are better.
+`import_risk_data()` reads a CSV and `validate_risk_data()` checks any table.
+
+```{r}
+path <- system.file("extdata", "project_selection.csv", package = "risk.decision")
+projects <- import_risk_data(path)
+validate_risk_data(projects)
+projects
+```
+
+## Compare expected value and risk
+
+```{r}
+calculate_expected_value(projects)
+calculate_risk_metrics(projects, threshold = 0)
+decision_tree_summary(projects, threshold = 0)
+```
+
+`generate_risk_matrix()` plots each outcome at its conditional probability and
+consequence.
+
+```{r}
+generate_risk_matrix(projects, ylab = "Net benefit")
+plot_risk_visualization(projects, ylab = "Expected net benefit")
+```
+
+## Test a probability
+
+`sensitivity_analysis()` varies one branch and rescales the other branches of
+that alternative in proportion.
+
+```{r}
+sens <- sensitivity_analysis(projects, alternative = "Innovative", branch = 3,
+                             probabilities = seq(0, 1, 0.1))
+ggplot2::ggplot(sens, ggplot2::aes(probability, expected_value, color = alternative)) +
+  ggplot2::geom_line(linewidth = 1.1) +
+  ggplot2::scale_color_manual(values = risk_palette(2)) +
+  ggplot2::scale_x_continuous(labels = scales::label_percent()) +
+  ggplot2::labs(x = "Probability of low demand (Innovative)", y = "Expected net benefit") +
+  theme_risk()
+```
+
+## Price information
+
+`evpi()` from the voi package (Jackson and Heath 2024), re-exported here, gives
+the most a risk-neutral user should pay to learn the state before choosing.
+`net_benefit_matrix()` converts an outcome table whose alternatives share their
+states and probabilities into the input `evpi()` expects.
+
+```{r}
+demand <- data.frame(
+  alternative = rep(c("Conservative", "Innovative"), each = 2),
+  uncertain_variable = rep(c("Low demand", "High demand"), 2),
+  outcome = c(-20, 80, -100, 160),
+  probability = rep(c(0.25, 0.75), 2))
+evpi(net_benefit_matrix(demand))
+```
+
+# Part C. Score several attributes
+
+`value_function()` adds weighted attribute values scaled from 0 to 1
+(Keeney and Raiffa 1993). `dawes_score()` ranks items by equal-weight z-scores.
+
+```{r}
+attribute_path <- system.file("extdata", "attribute_values.csv", package = "risk.decision")
+value_function(read.csv(attribute_path),
+               c(financial_value = 0.6, strategic_value = 0.4))
+dawes_score(data.frame(cost = c(12, 4, 25), duration = c(2, 1, 5)),
+            c(cost = 1, duration = 1))
+```
+
+# Part D. Case studies from the literature
+
+`case_study()` provides inputs from published decision analyses with
+Crossref-verified DOIs (`inst/REFERENCES.bib`). Each case below says what the
+authors did, how the package function treats the numbers, and how to read the
+result.
+
+```{r}
+case_study()[c("id", "type", "doi", "short_citation")]
+```
+
+## Ankle fixation: suture button or screw
+
+**The case.** A fracture near the ankle can come with a torn ligament joining
+the two lower leg bones (a syndesmosis injury), and surgeons repair it with a
+metal screw or a suture button. The choice has largely rested on surgeon
+preference. Schulte et al. (2021, doi:10.7759/cureus.19890) pooled 22 published
+studies (358 suture button and 739 screw patients) for the chance of five
+outcomes: a good result ("well"), surgical site infection, loss of reduction,
+hardware removal and malreduction. They then asked 100 consecutive outpatient
+volunteers to rate, from 0 to 10, how much they would want a treatment with each
+outcome's rate. Each outcome therefore has a probability and a patient value.
+
+**The method.** `calculate_expected_value()` multiplies each outcome's
+probability by its value and adds them for each alternative, which the paper
+calls foldback analysis. `calculate_risk_metrics()` adds the spread and the
+chance of a value below a threshold you choose.
+
+```{r}
+syndesmosis <- case_study("schulte_2021_syndesmosis")
+calculate_expected_value(syndesmosis)
+calculate_risk_metrics(syndesmosis, threshold = 5)
+generate_risk_matrix(syndesmosis, ylab = "Mean patient rating (0-10)")
+```
+
+**The result.** The suture button scores 7.46 and the screw 4.78, the values the
+paper reports: on the patients' 0 to 10 scale, the suture button's mix of
+outcomes is rated about 2.7 points higher. The matrix plot shows where the gap
+comes from. The "well" outcome is both more likely (76% against 47%) and rated
+higher for the suture button, and hardware removal is far less likely (10%
+against 31%). The values are group averages, so the standard deviation measures
+how much the five outcomes differ in rating; it describes the outcome mix, not
+variation among patients. The paper reports that the screw only catches up
+if the suture button's malreduction rate reaches 85%. The package's one-way
+analysis rescales the other outcomes in proportion, and under that scheme the
+suture button stays ahead at every malreduction probability.
+
+```{r}
+sensitivity_analysis(syndesmosis, "Suture button", branch = 5,
+                     probabilities = c(0.016, 0.5, 1))
+```
+
+## Surgery for a ferret
+
+**The case.** A one-year-old ferret, described by its owners as a chewer, arrived
+with two days of lethargy and loss of appetite and a day of diarrhea. Imaging
+showed a distended stomach with foreign-looking material, and the clinicians
+operated. Surgery found a stomach full of food and no foreign material, and the
+ferret was euthanized three days after presentation. Cummings et al. (2022,
+doi:10.3390/ani12233414) rebuilt the decision. Three outside veterinarians gave prior probabilities for seven
+diagnoses and the chance of each finding under each diagnosis, and Bayes' theorem
+updated the probability of a foreign body to 4% after all pre-surgical
+findings. The original clinical team rated four outcomes on a 0 to 100 scale
+(surgery or not, foreign body or not; no surgery and no foreign body is 100).
+
+**The method.** The two alternatives face the same two states with the same
+probability, so `calculate_expected_value()` gives each option's expected
+utility. The treatment threshold is the foreign-body probability at which the
+two options tie, and `evpi()` prices a perfect test.
+
+```{r}
+ferret <- case_study("cummings_2022_ferret")
+calculate_expected_value(ferret)
+u <- setNames(ferret$outcome, paste(ferret$alternative, ferret$uncertain_variable))
+threshold <- (u["No surgery No GI foreign body"] - u["Surgery No GI foreign body"]) /
+  ((u["Surgery GI foreign body"] - u["No surgery GI foreign body"]) +
+     (u["No surgery No GI foreign body"] - u["Surgery No GI foreign body"]))
+unname(threshold)
+evpi(net_benefit_matrix(ferret))
+```
+
+```{r}
+p <- seq(0, 1, 0.01)
+curves <- data.frame(
+  probability = rep(p, 2),
+  utility = c(p * u[["Surgery GI foreign body"]] + (1 - p) * u[["Surgery No GI foreign body"]],
+              p * u[["No surgery GI foreign body"]] + (1 - p) * u[["No surgery No GI foreign body"]]),
+  option = rep(c("Surgery", "No surgery"), each = length(p)))
+ggplot2::ggplot(curves, ggplot2::aes(probability, utility, color = option)) +
+  ggplot2::geom_line(linewidth = 1.1) +
+  ggplot2::geom_vline(xintercept = threshold, linetype = "dashed", color = "#8a897f") +
+  ggplot2::scale_color_manual(values = risk_palette(2)) +
+  ggplot2::scale_x_continuous(labels = scales::label_percent()) +
+  ggplot2::labs(x = "Probability of a foreign body", y = "Expected utility") +
+  theme_risk()
+```
+
+**The result.** At 4% the expected utility is 96.9 without surgery and 60.9 with
+it. The two lines cross at 40%, the threshold the paper reports: surgery is
+the better choice only when the chance of a foreign body exceeds 40%. At 4% the
+ferret sits far below that. The expected value of perfect
+information is 2.4 utility points, small beside the 36-point gap, so a further
+test would rarely change the decision. These utilities are the three clinicians'
+averages, and a different team could place the threshold elsewhere.
+
+## Flood protection with an uncertain budget
+
+**The case.** For the Coghinas floodplain, Napolitano et al. (2024,
+doi:10.2166/hydro.2024.194) compare five structural configurations of flood
+works over 100 years. A standard cost-benefit analysis, which assumes the
+budget is known from the start, picks Configuration 2 with a net present value
+of 13.34 million euro. Budget is uncertain in practice: at year 10 and again at
+year 20 it turns out higher or unchanged with probability 0.5 each, and a higher
+budget allows an upgrade to a more expensive configuration. The authors set
+these choices and chances in a decision tree and fold it back, taking the best
+decision at each decision node and the probability-weighted average at each
+chance node.
+
+**The method.** The package holds the outcome of one strategy as four equally
+likely paths. These are the optimal path's leaves from the paper's Figure 11,
+each with probability 0.25, so `calculate_expected_value()` repeats the fold-back
+average. The standard analysis (Table 8) is a set of five certain outcomes.
+
+```{r}
+calculate_expected_value(case_study("napolitano_2024_flood"))
+calculate_expected_value(case_study("napolitano_2024_cba"))
+```
+
+**The result.** The strategy is worth 12.26 million euro on average, the value the
+paper reports at the root of its tree, and its four paths range from 11.67 to
+13.34. Configuration 2 leads the standard comparison (13.34, against 10.02 for
+Configuration 3), and the tree keeps Configuration 2 as the first move. The paper's
+reservoir-operation alternative, valued at 66.33 million euro, has its own tree
+in the paper's figures. The leaf values above were read from Figure 11, so compare
+them with the source before reuse.
+
+## A new product, and an early vaccine approval
+
+**The case.** Phillips (2025, doi:10.1287/deca.2025.0356) describes two decisions.
+In the first, the managing director of a manufacturing company wanted to replace
+the firm's best-selling product with a new version, because a recent safety issue
+might lead the government to ban it. His board had rejected the proposal 11 times
+in 11 months. A decision tree of about 50 paths gave the new product a value of
+81.6 and the old product 77.2, a narrow gap. The key uncertainty was whether the
+new product's introduction would be clear or troubled. A clear introduction had
+probability 0.6 and value 88.8. The value for a troubled introduction, 70.8, is
+derived so that the tree rolls back to 81.6.
+
+In the second decision, the European Medicines Agency had to choose in 2009
+between approving H1N1 vaccines at the end of September or the end of October,
+before the full trial data were in. A tree of 24 scenarios, built in short expert
+meetings, gave the expected deaths and serious diseases among 500,000 people
+vaccinated.
+
+**The method.** For the product, `evpi()` prices learning the clear or troubled
+state before choosing. For the vaccine, the paper's rolled-back expected values
+are stored with the sign reversed so that higher is better, and
+`calculate_expected_value()` orders the two dates.
+
+```{r}
+product <- case_study("phillips_2025_new_product")
+calculate_expected_value(product)
+evpi(net_benefit_matrix(product))
+calculate_expected_value(case_study("phillips_2025_h1n1"))
+```
+
+**The result.** For the product, perfect information adds 2.56, the most a test
+that reveals the state could be worth. The managing director asked a different
+question: what would it be worth to make a clear introduction certain? That value
+of control is 88.8 minus 77.2, or 11.6. It exceeds the value of information
+because control changes the probability of a clear introduction, while information
+only reveals the outcome. Each board member disagreed with several probabilities,
+and the paper reports that any two of the disagreements together still favored the
+new product. The decision therefore needed no consensus on the inputs.
+
+For the vaccine, early approval has 216,500 expected deaths and serious diseases
+against 291,547 for a month's delay, so approving early prevents about 75,047.
+Waiting would be justified only if the probability of moderate disease, given a
+delay, exceeded 0.84, a value nobody at the first meeting believed. The vaccines
+were approved at the end of September.
+
+## Drilling risk on a risk matrix
+
+Thomas, Bratvold and Bickel (2014, doi:10.2118/166269-PA) take a drilling example
+from the literature, three downside outcomes of fluid losses in a well, and show
+what a matrix does with it. Part A, step 4, works through it with
+`compare_matrix_ranking()` and `plot_risk_heatmap()`. The probabilities (40%, 10%
+and 5%) come from their Table 1 and the impacts (3, 12.5 and 50 million dollars)
+are the midpoints in their Table 7, with the blowout midpoint following their
+assumption of a 20 to 80 million range.
