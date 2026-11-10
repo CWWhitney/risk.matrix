@@ -28,9 +28,9 @@ test_that("loss exceedance curves count strict exceedances", {
   out <- loss_exceedance_curve(c(0, 0, 1, 4, 20), c(0, 1, 10))
   expect_equal(out$exceedance_probability, c(0.6, 0.4, 0.2))
   expect_error(loss_exceedance_curve(-1), "non-negative")
-  grDevices::pdf(tempfile(fileext = ".pdf"))
-  on.exit(grDevices::dev.off())
-  expect_equal(plot_loss_exceedance(out), out)
+  expect_s3_class(plot_loss_exceedance(out), "ggplot")
+  expect_equal(plot_loss_exceedance(out)$data$exceedance_probability,
+               out$exceedance_probability)
 })
 
 test_that("certain monetary equivalent and tolerance fit behave", {
@@ -45,15 +45,19 @@ test_that("certain monetary equivalent and tolerance fit behave", {
   expect_error(fit_risk_tolerance(transform(bets, loss = 1)), "bets need")
 })
 
-test_that("perfect information is zero when one alternative dominates", {
+test_that("net benefit matrices feed voi::evpi", {
   d <- data.frame(alternative = rep(c("A", "B"), each = 2),
                   uncertain_variable = rep(c("s", "f"), 2),
                   outcome = c(40, -5, 0, 0), probability = rep(c(0.6, 0.4), 2))
-  expect_equal(expected_value_perfect_information(d)$evpi, 0.4 * 5)
+  m <- net_benefit_matrix(d)
+  expect_equal(dim(m), c(10, 2))
+  expect_equal(colnames(m), c("A", "B"))
+  expect_equal(evpi(m), 0.4 * 5)
   d$outcome[1:2] <- c(40, 1)
-  expect_equal(expected_value_perfect_information(d)$evpi, 0)
+  expect_equal(evpi(net_benefit_matrix(d)), 0)
   d$probability[3:4] <- c(0.5, 0.5)
-  expect_error(expected_value_perfect_information(d), "depend")
+  expect_error(net_benefit_matrix(d), "depend")
+  expect_error(net_benefit_matrix(d[1:2, ]), "two alternatives")
 })
 
 test_that("dawes score uses sample z-scores with direction", {
@@ -72,6 +76,43 @@ test_that("case studies reproduce the published expected values", {
   # published treatment threshold: about 40% probability of a foreign body
   diff <- p * 83.3 + (1 - p) * 60 - (p * 23.3 + (1 - p) * 100)
   expect_equal(p[which.min(abs(diff))], 0.4)
-  expect_equal(expected_value_perfect_information(f)$best_alternative, "No surgery")
+  expect_equal(evpi(net_benefit_matrix(f)), 2.4)
   expect_error(case_study("nope"), "unknown")
+})
+
+test_that("Napolitano and Phillips case studies reproduce published values", {
+  fl <- calculate_expected_value(case_study("napolitano_2024_flood"))
+  expect_equal(round(fl$expected_value, 2), 12.26)
+  cba <- calculate_expected_value(case_study("napolitano_2024_cba"))
+  expect_equal(cba$alternative[which.max(cba$expected_value)], "Configuration 2")
+  np <- calculate_expected_value(case_study("phillips_2025_new_product"))
+  expect_equal(np$expected_value, c(81.6, 77.2))
+  h <- calculate_expected_value(case_study("phillips_2025_h1n1"))
+  expect_equal(diff(h$expected_value), -75047)
+  expect_equal(evpi(net_benefit_matrix(case_study("phillips_2025_new_product"))), 2.56)
+})
+
+test_that("risk register tools import and plot", {
+  path <- system.file("extdata", "risk_register.csv", package = "risk.decision")
+  r <- import_risk_register(path)
+  expect_equal(nrow(r), 6)
+  expect_s3_class(plot_risk_register(r), "ggplot")
+  expect_s3_class(plot_risk_register(r[c("risk", "probability", "lower", "upper")]), "ggplot")
+  expect_s3_class(plot_expected_loss(r), "ggplot")
+  expect_error(import_risk_register("missing.csv"), "path")
+})
+
+test_that("matrix tools reproduce the published drilling example", {
+  d <- case_study("thomas_2014_drilling")
+  up <- compare_matrix_ranking(d)
+  expect_equal(up$matrix_score, c(20, 15, 12))
+  expect_equal(up$matrix_rank, 1:3)
+  down <- compare_matrix_ranking(d, scale = "descending")
+  expect_equal(down$matrix_score, c(6, 8, 5))
+  expect_equal(down$matrix_rank, c(2L, 3L, 1L))
+  expect_equal(up$expected_loss, c(1.2e6, 1.25e6, 2.5e6))
+  expect_equal(up$expected_loss_rank, 3:1)
+  expect_s3_class(plot_risk_heatmap(d), "ggplot")
+  expect_error(plot_risk_heatmap(d, probability_breaks = c(0, 0.5)), "breaks")
+  expect_error(compare_matrix_ranking(d, impact_breaks = c(0, 1e6, 2e6, 3e6, 4e6, 5e6, 6e6)), "inside")
 })

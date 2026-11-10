@@ -21,13 +21,13 @@ test_that("additive values enforce scales and trade-off weights", {
   expect_error(value_function(rbind(data, data[1, ]), c(cost = 1)), "alternative")
 })
 
-test_that("plots return their underlying data without modifying it", {
+test_that("plots are ggplot objects built from the validated data", {
   data <- data.frame(alternative = c("A", "A", "B"),
                      outcome = c(-10, 20, 5), probability = c(0.2, 0.8, 1))
-  grDevices::pdf(tempfile(fileext = ".pdf"))
-  on.exit(grDevices::dev.off())
-  expect_equal(generate_risk_matrix(data), data)
-  expect_equal(plot_risk_visualization(data), calculate_expected_value(data))
+  expect_s3_class(generate_risk_matrix(data), "ggplot")
+  expect_s3_class(plot_risk_visualization(data), "ggplot")
+  expect_equal(plot_risk_visualization(data)$data$expected_value,
+               calculate_expected_value(data)$expected_value)
   expect_error(generate_risk_matrix(transform(data, probability = -1)), "probability")
   expect_error(plot_risk_visualization(transform(data, probability = -1)), "probability")
 })
