@@ -1,0 +1,10 @@
+alternative,uncertain_variable,outcome,probability,value
+Portfolio A,Portfolio return,High return,0.20,150
+Portfolio A,Portfolio return,Target return,0.55,55
+Portfolio A,Portfolio return,Downside,0.25,-80
+Portfolio B,Portfolio return,High return,0.15,105
+Portfolio B,Portfolio return,Target return,0.65,50
+Portfolio B,Portfolio return,Downside,0.20,-30
+Portfolio C,Portfolio return,High return,0.10,75
+Portfolio C,Portfolio return,Target return,0.70,45
+Portfolio C,Portfolio return,Downside,0.20,-10

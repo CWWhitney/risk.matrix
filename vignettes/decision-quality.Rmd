@@ -1,0 +1,56 @@
+---
+title: "Introduction to Decision Quality Risk Assessment"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to Decision Quality Risk Assessment}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, collapse = TRUE, comment = "#>")
+library(risk.decision)
+```
+
+## Structure the decision before visualizing risk
+
+Decision quality starts by making the decision alternatives, relevant
+uncertainties, consequences, and preferences explicit. Howard and Abbas describe
+decision analysis as a structured way to reason about uncertain consequences,
+rather than treating a risk score as the decision itself. Keeney and Raiffa's
+value-focused perspective likewise asks decision makers to clarify objectives
+and values before comparing alternatives.
+
+A conventional probability-by-impact matrix can compress unlike outcomes into
+categories and obscure which choice is being evaluated, what the outcome means,
+or how likely it is. This package keeps outcome-level data and calculates
+expected value and downside probability; its visualization shows individual
+outcomes rather than only a cell or aggregate score. The bands are descriptive,
+not a substitute for preferences or a decision rule.
+
+## Define a decision model
+
+Each CSV row represents one mutually exclusive outcome for an alternative.
+The `value` column is a common, decision-relevant measure that must be
+interpretable across alternatives. Probabilities within each alternative sum to
+one. When there are multiple objectives, first define an appropriate
+multi-attribute value measure; do not combine incomparable raw measurements.
+
+```{r}
+project <- import_risk_data(system.file(
+  "extdata", "project-risk-template.csv", package = "risk.decision"
+))
+calculate_risk_metrics(project)
+```
+
+The model is deliberately explicit: alternatives are choices, uncertain
+variables identify drivers, outcomes describe consequences, and probabilities
+represent beliefs about those outcomes. Stakeholders should document the
+evidence and value judgments used to populate those inputs.
+
+## References
+
+- Howard, R. A., and Abbas, A. E. (2015). *Foundations of Decision Analysis*.
+  Pearson.
+- Keeney, R. L., and Raiffa, H. (1976). *Decisions with Multiple Objectives:
+  Preferences and Value Tradeoffs*. Wiley.

@@ -1,0 +1,17 @@
+Package: risk.decision
+Title: Decision Quality Risk Assessment and Analysis
+Version: 0.1.0
+Authors@R: person("Cory", "Whitney", role = c("aut", "cre"))
+Description: Structures risk assessment around explicit alternatives, uncertain
+    outcomes, and probabilities. Provides expected-value summaries and visual
+    representations that preserve the underlying decision information.
+License: MIT
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3

@@ -1,0 +1,10 @@
+alternative,uncertain_variable,outcome,probability,value
+Expand,Market demand,Strong adoption,0.30,180
+Expand,Market demand,Expected adoption,0.50,80
+Expand,Market demand,Weak adoption,0.20,-110
+Partner,Partner performance,Strong contribution,0.25,130
+Partner,Partner performance,Expected contribution,0.55,75
+Partner,Partner performance,Limited contribution,0.20,-25
+Maintain,Market demand,Strong adoption,0.15,65
+Maintain,Market demand,Expected adoption,0.55,40
+Maintain,Market demand,Weak adoption,0.30,15

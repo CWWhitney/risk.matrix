@@ -1,0 +1,53 @@
+---
+title: "One-to-One Risk Analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{One-to-One Risk Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, collapse = TRUE, comment = "#>")
+library(risk.decision)
+```
+
+## Translate one-to-one risk analysis into a decision model
+
+Hubbard's one-to-one analysis emphasizes examining uncertain inputs and their
+effects on an objective, rather than assigning a qualitative label alone. The
+illustrative project-selection data below follows that spirit: each alternative
+has a mutually exclusive set of schedule or market-window outcomes, with
+explicit probabilities and values. The numbers are synthetic and are not an
+example copied from Hubbard's work.
+
+The model makes the decision structure visible: the alternatives are Proceed
+and Defer, the uncertainty drivers are named, and the outcome values use one
+shared scale.
+
+```{r}
+project <- import_risk_data(system.file(
+  "extdata", "project-risk-template.csv", package = "risk.decision"
+))
+decision_tree_summary(project)
+```
+
+## Visualize the outcome distributions
+
+Rather than assigning a single likelihood-impact cell to a project, the
+visualization plots every modeled outcome and retains its alternative, outcome,
+probability, and value in the returned data frame.
+
+```{r}
+project_outcomes <- generate_risk_matrix(project)
+head(project_outcomes)
+```
+
+The plot is a review aid, not a decision rule. Decision makers can inspect
+whether the assumed probabilities are supported, whether values reflect their
+objectives, and whether additional analysis could change the choice.
+
+## Reference
+
+- Hubbard, D. W. (2009). *The Failure of Risk Management: Why It's Broken and
+  How to Fix It*. Wiley.
